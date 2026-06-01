@@ -17,16 +17,64 @@ model User {
   email     String   @unique
   password  String
   notes     Note[]
+  folder    Folder[]
   CreatedAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  tags      Tag[]
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  note      Note[]
+  createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
 
 model Note {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id String @id @default(uuid())
+
+  title   String
+  content String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id])
+
+  tags NoteTag[]
+
+  isFavorite Boolean @default(false)
+
+  archivedAt DateTime?
+
+  deletedAt DateTime?
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  notes     NoteTag[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+
+  @@unique([name, userId])
+}
+
+model NoteTag {
+  noteId String
+  tagId  String
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
 }
